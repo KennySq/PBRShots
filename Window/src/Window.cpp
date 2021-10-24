@@ -36,7 +36,10 @@ int Window::Run(DXSample* sample, HINSTANCE handleInst, int nCmdShow)
 {
 	registerClass(sample, handleInst);
 
+	sample->Awake();
+
 	ShowWindow(mHandle, nCmdShow);
+
 
 	MSG msg{};
 
@@ -51,13 +54,13 @@ int Window::Run(DXSample* sample, HINSTANCE handleInst, int nCmdShow)
 
 	sample->Release();
 
-	return 0;
+	return static_cast<char>(msg.wParam);
 }
 
 LRESULT __stdcall Window::WndProc(HWND hWnd, unsigned int message, WPARAM wParam, LPARAM lParam)
 {
 	DXSample* sample = reinterpret_cast<DXSample*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
-
+	
 	switch (message)
 	{
 	case WM_CREATE:
@@ -69,8 +72,11 @@ LRESULT __stdcall Window::WndProc(HWND hWnd, unsigned int message, WPARAM wParam
 
 	case WM_PAINT:
 	{
-		sample->Update(0.0f);
-		sample->Render(0.0f);
+		if (sample != nullptr)
+		{
+			sample->Update(0.0f);
+			sample->Render(0.0f);
+		}
 	}
 	return 0;
 	

@@ -41,7 +41,7 @@ void DXSample::AcquireHardware()
 	scDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 	scDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 	
-	Throw(mFactory->CreateSwapChain(nullptr, &scDesc, mSwapchain.GetAddressOf()));
+	Throw(mFactory->CreateSwapChain(mDevice.Get(), &scDesc, mSwapchain.GetAddressOf()));
 
 	
 }

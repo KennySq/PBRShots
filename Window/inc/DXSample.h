@@ -4,11 +4,16 @@
 
 #include<d3d11.h>
 #include<dxgi.h>
+#include<DirectXMath.h>
+#include<DirectXColors.h>
+#include<d3dcompiler.h>
+#include<d3d11shader.h>
 
 #include<wrl.h>
 
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
+#pragma comment(lib, "d3dcompiler.lib")
 
 using namespace Microsoft::WRL;
 
@@ -16,7 +21,7 @@ class DXSample
 {
 public:
 	DXSample(uint width, uint height, const char* appName);
-
+	virtual ~DXSample() {}
 	uint GetWidth() const { return mWidth; }
 	uint GetHeight() const { return mHeight; }
 
@@ -31,7 +36,6 @@ protected:
 
 	void AcquireHardware();
 
-private:
 
 	ComPtr<ID3D11Device> mDevice;
 	ComPtr<IDXGISwapChain> mSwapchain;
@@ -41,6 +45,10 @@ private:
 
 	uint mWidth;
 	uint mHeight;
+private:
+
+
+
 
 	const char* mAppName;
 

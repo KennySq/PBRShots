@@ -4,7 +4,7 @@
 typedef unsigned int uint;
 typedef unsigned long long address64;
 
-void Throw(HRESULT result)
+static void Throw(HRESULT result)
 {
 	if (FAILED(result))
 	{

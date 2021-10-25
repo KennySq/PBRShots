@@ -1,3 +1,5 @@
+#include"PBR.hlsli"
+
 cbuffer Constants : register(b0)
 {
     float4x4 gWorld;
@@ -42,11 +44,16 @@ PixelInput vert(VertexInput input)
 float4 frag(PixelInput input) : SV_Target0
 {
     float4 color;
+    float4 lightPos = gLightPosition;
+
+    lightPos.w = 1.0f;
     
-    float4 lightDir = normalize(gLightPosition - input.WorldPosition);
+    float4 lightDir = lightPos - input.Normal;
     
     float intensity = gLightPosition.w;
-    float diffuse = dot(lightDir, input.Normal) * gLightColor;
+    float diffuse = dot(lightDir, -input.Normal) * gLightColor;
     
-    return diffuse.xxxx;
+    float fr =  Fresnel(lightDir, normalize(input.Normal), 0.5f, 0.25f);
+    
+    return fr;
 }

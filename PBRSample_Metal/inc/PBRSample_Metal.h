@@ -50,8 +50,8 @@ private:
 
 	ComPtr<ID3D11Buffer> mConstantBuffer;
 
-
-
+	D3D11_MAPPED_SUBRESOURCE mCbufferMap;
+	Constants* mConstantData;
 	
 
 

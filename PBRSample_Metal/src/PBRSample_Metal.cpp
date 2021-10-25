@@ -41,12 +41,37 @@ void PBRSample_Metal::Awake()
 
 
 	loadAssets();
+	mConstantData = reinterpret_cast<Constants*>(mCbufferMap.pData);
+
 
 }
 
 void PBRSample_Metal::Update(float delta)
 {
-	
+
+
+	//XMVECTOR eye, at, up;
+
+	//eye = XMVectorSet(0.5f, 0.0f, 1.5f, 1.0f);
+	//at = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
+	//up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
+
+	////XMVECTOR quat = XMQuaternionRotationAxis(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), 1.0f);
+	//XMVECTOR origin = XMLoadFloat4(&mConstantData->LightPosition);
+
+	//XMStoreFloat4x4(&mConstantData->World, XMMatrixIdentity());
+	//XMStoreFloat4x4(&mConstantData->View, XMMatrixTranspose(XMMatrixLookAtLH(eye, at, up)));
+	//XMStoreFloat4x4(&mConstantData->Projection, XMMatrixTranspose(XMMatrixPerspectiveFovLH(XMConvertToRadians(90.0f), 1.777f, 0.001f, 1000.0f)));
+	//
+	//quat = XMVectorSet(XMConvertToDegrees(quat.m128_f32[0]), XMConvertToDegrees(quat.m128_f32[1]), XMConvertToDegrees(quat.m128_f32[2]), XMConvertToDegrees(quat.m128_f32[3]));
+
+	//origin *= quat;
+
+	//XMStoreFloat4(&mConstantData->LightPosition, origin);
+
+	//XMStoreFloat4(&mConstantData->LightColor, Colors::White);
+
+
 }
 
 void PBRSample_Metal::Render(float delta)
@@ -80,6 +105,8 @@ void PBRSample_Metal::Render(float delta)
 
 void PBRSample_Metal::Release()
 {
+	mContext->Unmap(mConstantBuffer.Get(), 0);
+
 }
 
 void PBRSample_Metal::loadAssets()
@@ -87,8 +114,12 @@ void PBRSample_Metal::loadAssets()
 	mViewport.Width = mWidth;
 	mViewport.Height = mHeight;
 	mViewport.MaxDepth = 1.0f;
+	std::string workPath = GetWorkingDirectoryA();
 
-	FbxLoader loader = FbxLoader("C:\\Users\\odess\\source\\repos\\PBRShots\\PBRSample_Metal\\resources\\knight-final\\knight.fbx");
+	std::string meshPath = workPath;
+	meshPath += "..\\..\\PBRSample_Metal\\resources\\knight-final\\knight.fbx";
+
+	FbxLoader loader = FbxLoader(meshPath.c_str());
 
 	D3D11_BUFFER_DESC vbDesc{};
 
@@ -129,8 +160,12 @@ void PBRSample_Metal::loadAssets()
 
 #endif
 
-	Throw(D3DCompileFromFile(L"C:\\Users\\odess\\source\\repos\\PBRShots\\PBRSample_Metal\\resources\\Metal.hlsl", nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "vert", "vs_5_0", compileFlag, 0, &vertexBlob, &errorBlob));
-	Throw(D3DCompileFromFile(L"C:\\Users\\odess\\source\\repos\\PBRShots\\PBRSample_Metal\\resources\\Metal.hlsl", nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "frag", "ps_5_0", compileFlag, 0, &pixelBlob, &errorBlob));
+
+	std::wstring shaderPath = GetWorkingDirectoryW();
+	shaderPath += L"..\\..\\PBRSample_Metal\\resources\\Metal.hlsl";
+
+	Throw(D3DCompileFromFile(shaderPath.c_str(), nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "vert", "vs_5_0", compileFlag, 0, &vertexBlob, &errorBlob));
+	Throw(D3DCompileFromFile(shaderPath.c_str(), nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "frag", "ps_5_0", compileFlag, 0, &pixelBlob, &errorBlob));
 	
 	Throw(mDevice->CreateInputLayout(inputElements, ARRAYSIZE(inputElements), vertexBlob->GetBufferPointer(), vertexBlob->GetBufferSize(), mInputLayout.GetAddressOf()));
 
@@ -145,29 +180,23 @@ void PBRSample_Metal::loadAssets()
 	cbufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
 	Throw(mDevice->CreateBuffer(&cbufferDesc, nullptr, mConstantBuffer.GetAddressOf()));
-	
-	D3D11_MAPPED_SUBRESOURCE mappedPtr;
-	Constants* constantData;
-	mContext->Map(mConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedPtr);
+	mContext->Map(mConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mCbufferMap);
 
-	constantData = reinterpret_cast<Constants*>(mappedPtr.pData);
+	mConstantData = reinterpret_cast<Constants*>(mCbufferMap.pData);
 
-	XMStoreFloat4x4(&constantData->World, XMMatrixIdentity());
+	XMStoreFloat4x4(&mConstantData->World, XMMatrixIdentity());
 
 	XMVECTOR eye, at, up;
 
-	eye = XMVectorSet(0.5f, 0.5f, 1.5f, 1.0f);
-	at = XMVectorSet(0.0f, 0.5f, 0.0f, 1.0f);
+	eye = XMVectorSet(0.5f, 0.0f, 1.5f, 1.0f);
+	at = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
 	up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
 
-	XMStoreFloat4(&constantData->LightPosition, XMVectorSet(500, 500, 500, 10.0f));
-	XMStoreFloat4(&constantData->LightColor, Colors::White);
 
-	XMStoreFloat4x4(&constantData->View, XMMatrixTranspose(XMMatrixLookAtLH(eye, at, up)));
-	XMStoreFloat4x4(&constantData->Projection, XMMatrixTranspose(XMMatrixPerspectiveFovLH(XMConvertToRadians(60.0f), 1.777f, 0.001f, 1000.0f)));
+	XMStoreFloat4(&mConstantData->LightPosition, XMVectorSet(250.0f, -500.0f, -500.0f, 1.0f));
+	XMStoreFloat4(&mConstantData->LightColor, Colors::White);
 
-	mContext->Unmap(mConstantBuffer.Get(), 0);
-
-
+	XMStoreFloat4x4(&mConstantData->View, XMMatrixTranspose(XMMatrixLookAtLH(eye, at, up)));
+	XMStoreFloat4x4(&mConstantData->Projection, XMMatrixTranspose(XMMatrixPerspectiveFovLH(XMConvertToRadians(90.0f), 1.777f, 0.001f, 1000.0f)));
 
 }

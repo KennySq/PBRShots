@@ -35,25 +35,51 @@ PixelInput vert(VertexInput input)
     output.Position = mul(output.Position, gView);
     output.Position = mul(output.Position, gProjection);
     
-    output.Normal = input.Normal;
+    output.Normal = float4(mul(input.Normal.xyz, (float3x3) gWorld), 1.0f);
     output.Texcoord = input.Texcoord;
     
 	return output;
+}
+
+float evaluate(float4 wi, float4 wo, float4 normal, float fr)
+{
+    float coso = dot(wo, normal);
+    float cosi = dot(wi, normal);
+    
+    if (cosi == 0.0f || coso == 0.0f)
+    {
+        return 0.0f;
+    }
+    
+    float4 wh = normalize(wi + wo);
+    
+    float cosh = dot(wi, wh);
+    
+    float denom = 4.0f * coso * cosi;
+
+    float numer = dot(wh, normal) * fr;
+    
+    return numer / denom;
 }
 
 float4 frag(PixelInput input) : SV_Target0
 {
     float4 color;
     float4 lightPos = gLightPosition;
-
+    float4 normal = normalize(input.Normal);
     lightPos.w = 1.0f;
     
     float4 lightDir = lightPos - input.Normal;
     
     float intensity = gLightPosition.w;
-    float diffuse = dot(lightDir, -input.Normal) * gLightColor;
+    float diffuse = saturate(dot(-lightDir, -normal) * gLightColor * intensity);
     
-    float fr =  Fresnel(lightDir, normalize(input.Normal), 0.5f, 0.25f);
     
-    return fr;
+    float4 ref = reflect(normalize(lightDir), -normal);
+    
+    float4 wh = normalize(lightDir + ref);
+    float fr = Fresnel(wh, -normal, 0.0f, 0.1f);
+    
+    float metallic = evaluate(normalize(lightDir), normalize(ref), -normal, fr);
+    return metallic;
 }

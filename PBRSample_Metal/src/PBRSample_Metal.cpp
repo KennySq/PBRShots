@@ -59,7 +59,9 @@ void PBRSample_Metal::Update(float delta)
 	////XMVECTOR quat = XMQuaternionRotationAxis(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), 1.0f);
 	//XMVECTOR origin = XMLoadFloat4(&mConstantData->LightPosition);
 
-	//XMStoreFloat4x4(&mConstantData->World, XMMatrixIdentity());
+	XMMATRIX rot = XMMatrixRotationRollPitchYaw(0.0f, 0.0008f, 0.0f);
+	XMMATRIX origin = XMLoadFloat4x4(&mConstantData->World);
+	XMStoreFloat4x4(&mConstantData->World, origin * rot);
 	//XMStoreFloat4x4(&mConstantData->View, XMMatrixTranspose(XMMatrixLookAtLH(eye, at, up)));
 	//XMStoreFloat4x4(&mConstantData->Projection, XMMatrixTranspose(XMMatrixPerspectiveFovLH(XMConvertToRadians(90.0f), 1.777f, 0.001f, 1000.0f)));
 	//
@@ -79,7 +81,7 @@ void PBRSample_Metal::Render(float delta)
 	static uint strides[] = { sizeof(Vertex) };
 	static uint offsets[] = { 0 };
 
-	mContext->ClearRenderTargetView(mBackBufferRTV.Get(), DirectX::Colors::Green);
+	mContext->ClearRenderTargetView(mBackBufferRTV.Get(), DirectX::Colors::Black);
 	mContext->ClearDepthStencilView(mDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 
@@ -117,7 +119,7 @@ void PBRSample_Metal::loadAssets()
 	std::string workPath = GetWorkingDirectoryA();
 
 	std::string meshPath = workPath;
-	meshPath += "..\\..\\PBRSample_Metal\\resources\\knight-final\\knight.fbx";
+	meshPath += "..\\..\\PBRSample_Metal\\resources\\greek_statue.fbx";
 
 	FbxLoader loader = FbxLoader(meshPath.c_str());
 
@@ -184,19 +186,20 @@ void PBRSample_Metal::loadAssets()
 
 	mConstantData = reinterpret_cast<Constants*>(mCbufferMap.pData);
 
-	XMStoreFloat4x4(&mConstantData->World, XMMatrixIdentity());
+	float rad = XMConvertToRadians(-180.0f);
+	XMStoreFloat4x4(&mConstantData->World, XMMatrixIdentity() * XMMatrixRotationRollPitchYaw(0.0f,0.0f, 0.0f));
 
 	XMVECTOR eye, at, up;
 
-	eye = XMVectorSet(0.5f, 0.0f, 1.5f, 1.0f);
-	at = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
+	eye = XMVectorSet(10.0f, 1.0f, 1.5f, 1.0f);
+	at = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
 	up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
 
 
-	XMStoreFloat4(&mConstantData->LightPosition, XMVectorSet(250.0f, -500.0f, -500.0f, 1.0f));
+	XMStoreFloat4(&mConstantData->LightPosition, XMVectorSet(-250.0f, -500.0f, -500.0f, 1.0f));
 	XMStoreFloat4(&mConstantData->LightColor, Colors::White);
 
 	XMStoreFloat4x4(&mConstantData->View, XMMatrixTranspose(XMMatrixLookAtLH(eye, at, up)));
-	XMStoreFloat4x4(&mConstantData->Projection, XMMatrixTranspose(XMMatrixPerspectiveFovLH(XMConvertToRadians(90.0f), 1.777f, 0.001f, 1000.0f)));
+	XMStoreFloat4x4(&mConstantData->Projection, XMMatrixTranspose(XMMatrixPerspectiveFovLH(XMConvertToRadians(40.0f), 1.777f, 0.001f, 1000.0f)));
 
 }
